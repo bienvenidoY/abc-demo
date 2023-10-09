@@ -41,6 +41,9 @@
         "signingIdentity": null
       },
       "windows": {
+        "wix": {
+            "language": "zh-CN"
+        },
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",
         "timestampUrl": ""
