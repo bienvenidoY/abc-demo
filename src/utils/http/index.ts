@@ -1,3 +1,6 @@
+import { overrideGlobalXHR } from 'tauri-xhr'
+overrideGlobalXHR()
+
 import Axios, {
   AxiosInstance,
   AxiosRequestConfig,

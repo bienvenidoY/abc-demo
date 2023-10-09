@@ -66,6 +66,10 @@
       "dialog": {
         "open": true
       },
+      "http": {
+        "all": true,
+        "scope": ["https://*", "http://*", "http://111.230.34.130:9080/*"]
+      },
       "fs": {
         "all": true,
         "readFile": true,
