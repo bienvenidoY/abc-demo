@@ -10,11 +10,11 @@ fn main() {
     let context = tauri::generate_context!();
 
 
-    // `new_sidecar()` expects just the filename, NOT the whole path like in JavaScript
-    // let (mut rx, mut child) = Command::new_sidecar("app")
-    //   .expect("failed to create `my-sidecar` binary command")
-    //   .spawn()
-    //   .expect("Failed to spawn sidecar");
+    `new_sidecar()` expects just the filename, NOT the whole path like in JavaScript
+    let (mut rx, mut child) = Command::new_sidecar("app")
+      .expect("failed to create `my-sidecar` binary command")
+      .spawn()
+      .expect("Failed to spawn sidecar");
 
     let edit_menu = Submenu::new("编辑", Menu::new()
       .add_native_item(MenuItem::Separator)

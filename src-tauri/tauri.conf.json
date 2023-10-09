@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
     "beforeDevCommand": "pnpm package && pnpm browser:dev",
-    "beforeBuildCommand": "pnpm browser:build",
+    "beforeBuildCommand": "pnpm package && pnpm browser:build",
     "devPath": "http://localhost:8080",
     "distDir": "../dist"
   },
@@ -48,6 +48,7 @@
       "deb": {
         "depends": []
       },
+      "externalBin": ["binaries/app"],
       "longDescription": "",
       "resources": [],
       "shortDescription": ""
@@ -76,7 +77,13 @@
       },
       "shell": {
         "open": true,
-        "sidecar": true
+        "sidecar": true,
+         "scope": [
+          {
+            "name": "binaries/app",
+            "sidecar": true
+          }
+        ]
       },
       "clipboard": {
         "all": true,
