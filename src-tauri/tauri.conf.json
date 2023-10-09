@@ -1,0 +1,95 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "build": {
+    "beforeDevCommand": "pnpm package && pnpm browser:dev",
+    "beforeBuildCommand": "pnpm package && pnpm browser:build",
+    "devPath": "http://localhost:8080",
+    "distDir": "../dist"
+  },
+  "package": {
+    "productName": "矩阵王",
+    "version": "../package.json"
+  },
+  "tauri": {
+    "windows": [
+      {
+        "resizable": false,
+        "fullscreen": false,
+        "height": 768,
+        "title": "矩阵王",
+        "width": 1224
+      }
+    ],
+    "bundle": {
+      "active": true,
+      "targets": ["dmg", "deb", "appimage", "msi"],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "copyright": "Copyright © 2020-present, pure-admin",
+      "category": "DeveloperTool",
+      "identifier": "com.tauri.pure",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      },
+      "deb": {
+        "depends": []
+      },
+      "externalBin": ["binaries/app"],
+      "longDescription": "",
+      "resources": [],
+      "shortDescription": ""
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "allowlist": {
+      "dialog": {
+        "open": true
+      },
+      "fs": {
+        "all": true,
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": true,
+        "removeFile": true,
+        "renameFile": true,
+        "exists": true
+      },
+      "shell": {
+        "open": true,
+        "sidecar": true,
+        "scope": [
+          {
+            "name": "binaries/app",
+            "sidecar": true
+          }
+        ]
+      },
+      "clipboard": {
+        "all": true,
+        "writeText": true,
+        "readText": true
+      }
+    }
+  }
+}
