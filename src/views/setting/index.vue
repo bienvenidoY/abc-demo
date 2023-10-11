@@ -5,14 +5,17 @@ import dayjs from 'dayjs'
 import { getToken, UserInfoKey } from "@/utils/auth";
 import { storageLocal } from "@pureadmin/utils";
 import { message } from '@/utils/message'
+import { open } from '@tauri-apps/api/shell';
+
 
 defineOptions({
   name: "setting"
 });
 
 const originObj = {
-  ip: "",
-  vm: ""
+  ipProxy: "",
+  vmProxy: "",
+  maxWorkerRun: 1,
 };
 
 const form = ref({ ...originObj });
@@ -20,11 +23,11 @@ const form = ref({ ...originObj });
 const isDisabled = ref(true);
 
 async function onSubmit() {
-  const { ip, vm } = form.value;
+  const { ipProxy, vmProxy, maxWorkerRun } = form.value;
   getSettingTablelistApi({
-    maxWorkerRun: 1,
-    ipProxy: ip,
-    vmProxy: vm
+    maxWorkerRun: +maxWorkerRun,
+    ipProxy,
+    vmProxy
   }).then(() => {
     isDisabled.value = true;
     message('设置成功', {type: 'success'})
@@ -37,6 +40,10 @@ function onCancel() {
   form.value = { ...originObj };
   isDisabled.value = true;
 }
+
+ function openUrl(url) {
+   open(url)
+ }
 </script>
 
 <template>
@@ -45,16 +52,19 @@ function onCancel() {
       <el-form-item label="激活时间">{{ storageLocal().getItem(UserInfoKey).activationAt }}</el-form-item>
       <el-form-item label="过期时间">{{ storageLocal().getItem(UserInfoKey).expires }}</el-form-item>
       <el-form-item label="IP设置">
-        <el-input v-model="form.ip" style="width: 300px" placeholder="请输入" />
-        <a href="https://share.netnut.cn/5QsYCrJuSaYPQXF" __blank style="margin-left: 10px; color: orange"
+        <el-input v-model="form.ipProxy" class="!w-[300px]" placeholder="请输入" />
+        <a @click="openUrl('https://share.netnut.cn/5QsYCrJuSaYPQXF')" href="javascript:void(0)" style="margin-left: 10px; color: orange"
           >推荐IP链接</a
         >
       </el-form-item>
       <el-form-item label="VM设置">
-        <el-input v-model="form.vm" style="width: 300px" placeholder="请输入" />
+        <el-input v-model="form.vmProxy" class="!w-[300px]" placeholder="请输入" />
         <a href="javascript:void(0)" style="margin-left: 10px; color: orange"
           >推荐VM链接</a
         >
+      </el-form-item>
+      <el-form-item label="最大运行数">
+        <el-input-number v-model="form.maxWorkerRun" class="w-[300px]" :min="1" :max="5" />
       </el-form-item>
     </el-form>
     <div style="margin-left: 80px">

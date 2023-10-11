@@ -66,6 +66,9 @@
       "dialog": {
         "open": true
       },
+      "path": {
+        "all": true
+      },
       "http": {
         "all": true,
         "scope": ["https://*", "http://*", "http://111.230.34.130:9080/*"]
@@ -80,7 +83,8 @@
         "removeDir": true,
         "removeFile": true,
         "renameFile": true,
-        "exists": true
+        "exists": true,
+        "scope": ["$DOWNLOAD/*"]
       },
       "shell": {
         "open": true,

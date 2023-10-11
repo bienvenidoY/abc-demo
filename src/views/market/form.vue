@@ -135,11 +135,7 @@ async function handleChange(uploadFile: UploadFile) {
 
 function handleFile(item) {
    open({
-    multiple: false,
-    filters: [{
-      name: '选择文件',
-      extensions: item.attributes?.accept?.split(',').map(v => v.replace('.', '')) || []
-    }]
+    directory: true,
   }).then((localPath) => {
      item.value = localPath
    })
@@ -187,13 +183,10 @@ defineExpose({
       <el-form-item :label="item.label" required v-if="item.type === 'file'">
         <div>
           <div>
-            <el-button type="primary" text @click="handleFile(item)" >选择文件</el-button>
+            <el-button type="primary" text @click="handleFile(item)" >选择文件夹</el-button>
           </div>
           <el-text tag="div" size="small"  v-if="item.value">
-            已选择文件 {{ getFileName(item.value)}}
-          </el-text>
-          <el-text tag="div" size="small">
-            支持文件类型{{ item.attributes.accept }}
+            文件夹路径 {{ item.value }}
           </el-text>
         </div>
       </el-form-item>

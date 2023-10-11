@@ -19,8 +19,26 @@
         <el-table-column prop="account" label="账号" />
         <el-table-column prop="password" label="密码" />
         <el-table-column prop="auxiliaryEmail" label="辅助邮箱" />
-        <el-table-column prop="ipProxy" label="代理IP" />
-        <el-table-column prop="vmProxy" label="VM指纹" />
+        <el-table-column prop="ipProxy" label="代理IP">
+          <template #default="{ row }">
+            <el-tooltip
+              :content="row.ipProxy"
+              effect="light"
+            >
+              <el-button link type="primary">查看IP</el-button>
+            </el-tooltip>
+        </template>
+        </el-table-column>
+        <el-table-column prop="vmProxy" label="VM指纹" >
+          <template #default="{ row }">
+            <el-tooltip
+              effect="light"
+              :content="row.vmProxy"
+            >
+              <el-button link type="primary">查看VM</el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column label="操作">
           <template #default="{ row }">
             <el-button link type="primary" @click="handleDelItem(row)"
@@ -103,7 +121,11 @@ const onClickTxtDemo = () => {
       密码: "123123",
       辅助邮箱: "123@xx.com"
     }
-  ]);
+  ]).then(res => {
+    message('示例下载成功', {type: 'success'})
+  }).catch(err => {
+    message(`示例下载失败：${err}`, {type: 'error'})
+  })
 };
 
 const handleDelItem = row => {

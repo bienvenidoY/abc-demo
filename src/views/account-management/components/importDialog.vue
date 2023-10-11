@@ -7,10 +7,10 @@
   >
     <div class="header">
       <el-form-item label="IP数量">
-        <el-input placeholder="请输入IP" v-model="ip" />
+        <el-input placeholder="请输入IP数量" v-model="ipNum" />
       </el-form-item>
       <el-form-item label="VM数量">
-        <el-input placeholder="请输入VM" v-model="vm" />
+        <el-input placeholder="请输入VM数量" v-model="vmNum" />
       </el-form-item>
     </div>
     <el-table :data="list" size="small" border height="400px">
@@ -49,21 +49,21 @@ const props = defineProps({
 });
 
 const dialogVisible = ref(false);
-const ip = ref("");
-const vm = ref("");
+const ipNum = ref("");
+const vmNum = ref("");
 const handleClose = () => {
-  ip.value = "";
-  vm.value = "";
+  ipNum.value = "";
+  vmNum.value = "";
   $emit("close");
   dialogVisible.value = false;
 };
 const handleSave = () => {
-  if (!ip.value) {
-    ElMessage.error("请输入ip");
+  if (!ipNum.value) {
+    ElMessage.error("请输入ip数量");
     return;
   }
-  if (!vm.value) {
-    ElMessage.error("请输入vm");
+  if (!vmNum.value) {
+    ElMessage.error("请输入vm数量");
     return;
   }
   const reslut = props.list.map(item => {
@@ -71,11 +71,9 @@ const handleSave = () => {
       account: item["账号"],
       password: item["密码"].toString(),
       auxiliaryEmail: item["辅助邮箱"],
-      ipProxy: ip.value,
-      vmProxy: vm.value
     };
   });
-  addAccountApi({ list: reslut }).then(() => {
+  addAccountApi({ ipNum: ipNum.value, vmNum: vmNum.value, list: reslut }).then(() => {
     ElMessage.success("保存成功");
     $emit("success");
     dialogVisible.value = false;

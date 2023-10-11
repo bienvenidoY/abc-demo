@@ -70,9 +70,6 @@ dependencies:
   sortablejs:
     specifier: ^1.15.0
     version: 1.15.0
-  tauri-xhr:
-    specifier: ^0.1.2
-    version: 0.1.2
   vue:
     specifier: ^3.3.1
     version: 3.3.4
@@ -7145,6 +7142,12 @@ packages:
       b4a: 1.6.4
       fast-fifo: 1.3.2
       streamx: 2.15.1
+    dev: false
+
+  /tauri-xhr@0.1.2:
+    resolution: {integrity: sha512-7VHXhv9/sAkmWu9J4nsHlQf82Un/tMLptdi2WppPYstYg7AfLx58TBeRvA5gI+th19EW2howLMet29SGnMYsIA==}
+    dependencies:
+      '@tauri-apps/api': 1.5.0
     dev: false
 
   /terser@5.21.0:

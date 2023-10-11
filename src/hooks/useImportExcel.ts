@@ -1,4 +1,6 @@
 import * as XLSX from "xlsx";
+import { writeBinaryFile } from '@tauri-apps/api/fs';
+import { downloadDir } from '@tauri-apps/api/path';
 
 /**
  * 导入并解析表格
@@ -43,10 +45,9 @@ export const useImportExcel = () => {
  * @param sheetName 第一张表名
  * @param fileName 文件名
  */
-export function exportExcelFile(
+ export async function exportExcelFile(
   array: any[],
   sheetName = "sheet1",
-  fileName = "示例.xlsx"
 ) {
   const jsonWorkSheet = XLSX.utils.json_to_sheet(array);
   const workBook = {
@@ -55,5 +56,8 @@ export function exportExcelFile(
       [sheetName]: jsonWorkSheet
     }
   };
-  return XLSX.writeFile(workBook, fileName);
+  const buffer = XLSX.write(workBook, { bookType: 'xlsx', type: 'buffer' });
+  const downloadDirPath = await downloadDir();
+  const timestamp = new Date().getTime();
+  return writeBinaryFile(`${downloadDirPath}/示例_${timestamp}.xlsx`, buffer, {append: false });
 }

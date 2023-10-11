@@ -37,7 +37,9 @@ initTable();
     <el-table :data="tableData.list" border>
       <el-table-column prop="id" label="id" width="80" />
       <el-table-column prop="title" label="功能" />
-      <el-table-column prop="retryCount" label="任务数量" width="120"/>
+      <el-table-column prop="retryCount" label="重拾次数" width="120"/>
+      <el-table-column prop="accountCount" label="任务数量" width="120"/>
+      <el-table-column prop="errorMessage" label="错误日志"/>
       <el-table-column prop="startTime" label="开始时间" />
       <el-table-column prop="endTime" label="结束时间" />
       <el-table-column prop="status" label="状态" />
