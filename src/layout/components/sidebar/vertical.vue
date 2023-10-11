@@ -11,6 +11,7 @@ import {ref, computed, watch, onBeforeMount, onMounted} from "vue";
 import { findRouteByPath, getParentPaths } from "@/router/utils";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { Command } from '@tauri-apps/api/shell'
+import {message} from "@/utils/message";
 
 
 const route = useRoute();
@@ -75,16 +76,8 @@ watch(
 * */
 
 let timerId = null; // 用于保存定时器的ID
-const output = ref(null)
+const command = Command.sidecar('binaries/app', 'callApiAndRun')
 
-onMounted(async () => {
-  const command = Command.sidecar('binaries/app')
-  try {
-    output.value = await command.execute()
-  }catch (e) {
-
-  }
-})
 // 开启定时器的方法
 function startTimer() {
   if (timerId === null) {
@@ -92,8 +85,22 @@ function startTimer() {
     function repeat() {
       // 这里放定时执行的代码
       console.log('定时器执行了！');
-      output.value.callApiAndRun()
-      timerId = setTimeout(repeat, 10000); // 10000毫秒 = 10秒
+      command.execute().then(outputVal => {
+        console.log(outputVal, sidecarStatus.value )
+        if(outputVal.code === 0) {
+          // output.value = outputVal
+          timerId = setTimeout(repeat, 10000); // 10000毫秒 = 10秒
+        }else {
+          console.log(outputVal.stderr)
+          message(outputVal.stderr, { type: 'error'})
+          stopTimer()
+          sidecarStatus.value = false
+        }
+      }).catch(e => {
+        console.log(e)
+      })
+
+
     }
     repeat(); // 第一次调用
     console.log('定时器已开启！');
@@ -115,15 +122,14 @@ function stopTimer() {
 
 const sidecarStatus = ref(false)
 
-async function changeSidecar() {
-  if(!output.value) return
-  console.log(output)
-  // if(!sidecarStatus.value ) {
-  //   startTimer()
-  // }else {
-  //   stopTimer()
-  // }
+async function switchChange(val) {
+  if(val) {
+    startTimer()
+  }else {
+    stopTimer()
+  }
 }
+
 </script>
 
 <template>
@@ -170,7 +176,7 @@ async function changeSidecar() {
         style="--el-switch-on-color: #13ce66;--el-switch-off-color: #409eff"
         active-text="任务执行中"
         inactive-text="开始任务"
-        :before-change="changeSidecar"
+        @change="switchChange"
       />
     </div>
   </div>

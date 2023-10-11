@@ -1,8 +1,8 @@
 {
   "name": "tauri-pure-admin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
-  "bin": "scripts/server/index.js",
+  "bin": "scripts/server/server.js",
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",
@@ -55,7 +55,10 @@
     "path": "^0.12.7",
     "pinia": "^2.0.36",
     "puppeteer": "^21.3.8",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "qs": "^6.11.1",
+    "random-js": "^2.1.0",
     "responsive-storage": "^2.2.0",
     "sortablejs": "^1.15.0",
     "tauri-xhr": "^0.1.2",

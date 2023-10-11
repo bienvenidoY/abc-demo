@@ -87,12 +87,15 @@
         "scope": ["$DOWNLOAD/*"]
       },
       "shell": {
+        "all": true,
         "open": true,
         "sidecar": true,
-         "scope": [
+        "execute": true,
+        "scope": [
           {
             "name": "binaries/app",
-            "sidecar": true
+            "sidecar": true,
+            "args": true
           }
         ]
       },

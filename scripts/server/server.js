@@ -4,10 +4,39 @@ const fs = require('fs');
 const axios = require('axios');
 
 const {Random} = require('random-js');
-
 puppeteerExtra.use(stealth());
 
 const random = new Random();
+function findChromePath() {
+  const paths = {
+    'darwin': [
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '~/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+    ],
+    'win32': [
+      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      `${process.env.LOCALAPPDATA}\\Google\\Chrome\\Application\\chrome.exe`
+    ],
+    'linux': [
+      '/usr/bin/google-chrome',
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/chromium',
+      '/usr/bin/chromium-browser'
+    ]
+  };
+
+  const platform = process.platform;
+  if (paths[platform]) {
+    for (let path of paths[platform]) {
+      if (fs.existsSync(path)) {
+        return path;
+      }
+    }
+  }
+
+  throw new Error('Chrome installation not found');
+}
 
 // Constants
 const URLS = {
@@ -184,7 +213,7 @@ const responseHandler = async (response, page) => {
   try {
     if (url.includes(URLS.captchaGet)) {
       const jsonData = await response.json();
-      const question = jsonData.data?.question;
+      const question = jsonData.data.question;
       if (question) {
         CAPTCHA_TYPE = determineCaptchaType(question);
       }
@@ -199,7 +228,7 @@ const responseHandler = async (response, page) => {
 };
 
 
-const randomSleep = async (page, min = 2000, max = 5000) => {
+const randomSleep = async (page, min = 50, max = 200) => {
   const time = Math.random() * (max - min) + min;
   await page.waitForTimeout(time);
 };
@@ -222,11 +251,6 @@ const moveMouseToElement = async (page, element, delay = 100) => {
     await page.mouse.move(x, y);
     await page.waitForTimeout(50);  // 1秒
   }
-};
-// 这个函数用于检测“加载中”的指示是否存在
-const isLoadingIndicatorVisible = async (page, loadingIndicatorXPath) => {
-  const [loadingElement] = await page.$x(loadingIndicatorXPath);
-  return !!loadingElement;
 };
 
 
@@ -254,6 +278,7 @@ const clickElementIfVisible = async (page, xpaths, options = {}) => {
     while (retries < maxRetries) {
       try {
         const [element] = await page.$x(xpath);
+        const elementType = await (await element.getProperty('nodeName')).jsonValue();
         if (!element) {
           break;
         }
@@ -266,15 +291,45 @@ const clickElementIfVisible = async (page, xpaths, options = {}) => {
         await moveMouseToElement(page, element);
         await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 
+        // 根据元素类型决定休眠时长
+        if (elementType.toLowerCase() === 'button') {
+          await page.waitForTimeout(Math.floor(Math.random() * 5000) + 5000); // 休眠5-10秒
+        } else {
+          await randomSleep(page);
+        }
+
+
+        // 点击之后 休眠
+        await randomSleep(page);
+
         let elapsedTime = 0;
         while (elapsedTime < maxWaitTime) {
-          if (successCriteria && await checkCriteria(page, successCriteria)) {
-            await randomSleep(page);
-            return;
-          } else if (failureCriteria && await checkCriteria(page, failureCriteria)) {
-            retries = 0; // 失败条件满足，重试计数器清零
-            break;
+          if (successCriteria) {
+            // 如果存在成功条件并且该条件已满足，直接返回
+            if (await checkCriteria(page, successCriteria)) {
+              await randomSleep(page);
+              return;
+            }
           }
+          if (failureCriteria) {
+            const failureConditionMet = await checkCriteria(page, failureCriteria);
+            console.log("失败条件:", failureConditionMet, retries)
+            // 如果失败条件当前满足
+            if (failureConditionMet) {
+              retries = 0;
+              break; // 跳出等待循环并清零重试计数器
+            }
+            // 如果失败条件不满足并且重试次数已经超过 maxRetries（表示已经重试过），则认为操作成功，跳出循环
+            else if (retries > maxRetries) {
+              await randomSleep(page);
+              return;
+            } else if (!failureConditionMet) {
+              await randomSleep(page);
+              console.log("重试成功，跳出当前循环")
+              return
+            }
+          }
+
           await page.waitForTimeout(intervalTime);
           elapsedTime += intervalTime;
         }
@@ -295,7 +350,6 @@ const clickElementIfVisible = async (page, xpaths, options = {}) => {
 
   throw new Error(`尝试所有XPath都失败了，XPaths: ${xpaths.join(', ')}`);
 };
-
 
 
 const typeInputIfVisible = async (page, xpaths, inputText, options = {}) => {
@@ -349,7 +403,8 @@ const typeInputIfVisible = async (page, xpaths, inputText, options = {}) => {
   throw new Error(`尝试所有XPath都失败了，XPaths: ${xpaths.join(', ')}`);
 };
 
-const loginTikTok = async (page, username, password, auxiliaryEmail) => {
+const loginTikTok = async (page, username, password, auxiliaryEmail, taskId, cardId) => {
+
   try {
     await page.goto('https://www.tiktok.com/explore');
 
@@ -357,6 +412,7 @@ const loginTikTok = async (page, username, password, auxiliaryEmail) => {
     // ------------------ 点击登录  ------------------
     try {
       logger.info(`执行任务：点击登录按钮`);
+      await uploadLog(taskId, cardId, "INFO", "点击登录按钮")
       await clickElementIfVisible(page,
         ['//*[@id="header-login-button"]'],
         {
@@ -366,15 +422,16 @@ const loginTikTok = async (page, username, password, auxiliaryEmail) => {
       );
 
     } catch (e) {
+      await uploadLog(taskId, cardId, "ERROR", "点击登录按钮失败")
       logger.error(`任务失败：${e.message}`);
-      await page.waitForTimeout(100000);  // 重试前休眠
       await page.close();
     }
     // ------------------ 选择登录类型  ------------------
     try {
       logger.info(`执行任务：选择登录类型`);
+      await uploadLog(taskId, cardId, "INFO", "选择登录类型")
       await clickElementIfVisible(page,
-        ['//*[@id="loginContainer"]/div/div/a[2]/div/p','//*[@id="tux-3-tab-email/username"]/span'],
+        ['//!*[@id="loginContainer"]/div/div/a[2]/div/p', '//!*[@id="tux-3-tab-email/username"]/span'],
         {
           successCriteriaXPaths: [],
           failureCriteriaXPaths: []
@@ -383,15 +440,16 @@ const loginTikTok = async (page, username, password, auxiliaryEmail) => {
 
     } catch (e) {
       logger.error(`任务失败：${e.message}`);
-      await page.waitForTimeout(100000);  // 重试前休眠
+      await uploadLog(taskId, cardId, "ERROR", "选择登录类型失败")
       await page.close();
     }
 
     // ------------------ 选择账号登录/密码  ------------------
     try {
       logger.info(`执行任务：选择账号登录/密码`);
+      await uploadLog(taskId, cardId, "INFO", "选择账号登录/密码")
       await clickElementIfVisible(page,
-        ['//*[@id="loginContainer"]/div[2]/form/div[1]/a'],
+        ['//!*[@id="loginContainer"]/div[2]/form/div[1]/a'],
         {
           successCriteriaXPaths: [],
           failureCriteriaXPaths: []
@@ -400,15 +458,16 @@ const loginTikTok = async (page, username, password, auxiliaryEmail) => {
 
     } catch (e) {
       logger.error(`任务失败：${e.message}`);
-      await page.waitForTimeout(100000);  // 重试前休眠
+      await uploadLog(taskId, cardId, "ERROR", "选择账号登录/密码失败")
       await page.close();
     }
 
     // ------------------ 输入账号密码  ------------------
     try {
       logger.info(`执行任务：输入账号`);
+      await uploadLog(taskId, cardId, "INFO", "输入账号")
       await typeInputIfVisible(page,
-        ['//*[@id="loginContainer"]/div[2]/form/div[1]/input','//*[@id="tux-3-panel-email/username"]/div/form/div[1]/input'],
+        ['//!*[@id="loginContainer"]/div[2]/form/div[1]/input', '//!*[@id="tux-3-panel-email/username"]/div/form/div[1]/input'],
         username,
         {
           successCriteriaXPaths: [],
@@ -418,13 +477,14 @@ const loginTikTok = async (page, username, password, auxiliaryEmail) => {
 
     } catch (e) {
       logger.error(`任务失败：${e.message}`);
-      await page.waitForTimeout(100000);  // 重试前休眠
+      await uploadLog(taskId, cardId, "ERROR", "输入账号失败")
       await page.close();
     }
     try {
       logger.info(`执行任务：输入密码`);
+      await uploadLog(taskId, cardId, "INFO", "输入密码")
       await typeInputIfVisible(page,
-        ['//*[@id="loginContainer"]/div[2]/form/div[2]/div/input','//*[@id="tux-3-panel-email/username"]/div/form/div[2]/div/input'],
+        ['//!*[@id="loginContainer"]/div[2]/form/div[2]/div/input', '//!*[@id="tux-3-panel-email/username"]/div/form/div[2]/div/input'],
         password,
         {
           successCriteriaXPaths: [],
@@ -434,30 +494,31 @@ const loginTikTok = async (page, username, password, auxiliaryEmail) => {
 
     } catch (e) {
       logger.error(`任务失败：${e.message}`);
-      await page.waitForTimeout(100000);  // 重试前休眠
+      await uploadLog(taskId, cardId, "ERROR", "输入密码失败")
       await page.close();
     }
 
     // ------------------ 点击登录  ------------------
     try {
       logger.info(`执行任务：点击登录`);
+      await uploadLog(taskId, cardId, "INFO", "点击登录")
       await clickElementIfVisible(page,
-        ['//*[@id="loginContainer"]/div[2]/form/button','//*[@id="tux-3-panel-email/username"]/div/form/button'],
+        ['//!*[@id="loginContainer"]/div[2]/form/button', '//!*[@id="tux-3-panel-email/username"]/div/form/button'],
         {
           successCriteriaXPaths: [],
-          failureCriteriaXPaths: ['//*[@id="loginContainer"]/div[2]/form/div[3]/span']
+          failureCriteriaXPaths: ['//!*[@id="loginContainer"]/div[2]/form/div[3]/span']
         }
       );
 
     } catch (e) {
       logger.error(`任务失败：${e.message}`);
-      await page.waitForTimeout(100000);  // 重试前休眠
+      await uploadLog(taskId, cardId, "ERROR", "点击登录失败")
       await page.close();
     }
 
-
     // logger.info('点击下一步:个人签名');
-    // await page.goto("https://www.tiktok.com/@"+username)
+    // await uploadLog(taskId, cardId, "INFO", "个人签名")
+    // await page.goto("https://www.tiktok.com/@" + username)
 
     await page.waitForTimeout(300000);
   } catch (e) {
@@ -465,22 +526,12 @@ const loginTikTok = async (page, username, password, auxiliaryEmail) => {
   }
 };
 
-async function getImageAsBase64(url) {
-  try {
-    const response = await axios.get(url, {responseType: 'arraybuffer'});
-    const base64 = Buffer.from(response.data, 'binary').toString('base64');
-    return base64;
-  } catch (error) {
-    logger.error('Error fetching the image:', error.message);
-    return null;
-  }
-}
-
 // Main Execution
-const run = async (username, password, auxiliaryEmail) => {
+const run = async (username, password, auxiliaryEmail, taskId, cardId) => {
   const browser = await puppeteerExtra.launch({
     headless: false,
-    executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    // executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    executablePath: findChromePath(),
     args: [
       '--no-default-browser-check',
       '--disable-infobars',
@@ -519,13 +570,49 @@ const run = async (username, password, auxiliaryEmail) => {
 
   // page.on('console', msg => logger.debug(`Page Log: ${msg.text()}`));
   await page.setDefaultTimeout(60000);
-  await loginTikTok(page, username, password, auxiliaryEmail);
+  await loginTikTok(page, username, password, auxiliaryEmail, taskId, cardId);
 
   await browser.close();
 
 };
 
-export const callApiAndRun = async () => {
+async function uploadLog(taskId, cardId, logLevel, message) {
+  const endpoint = 'http://111.230.34.130:9080/v1/log';
+  const headers = {
+    'Content-Type': 'application/json',
+    'token': 'd51w0T6K2M8M4K0W6X2T',
+  };
+  const body = {
+    taskId,
+    cardId,
+    logLevel,
+    message
+  };
+
+
+  try {
+    const response = await axios.post(endpoint, body, {headers});
+    console.log(response.data)
+    return response.data;  // 假设服务器返回JSON格式的响应
+  } catch (error) {
+    console.error('Error uploading log:', error);
+    throw error;  // 或者你可以选择返回错误信息
+  }
+}
+
+function getCurrentTimestamp() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+}
+
+const callApiAndRun = async () => {
   const headers = {
     'token': 'd51w0T6K2M8M4K0W6X2T',
     'Content-Type': 'application/json'
@@ -541,12 +628,17 @@ export const callApiAndRun = async () => {
       for (const item of dataList) {
         if (typeof item.taskData === 'string') {
           const parsedTaskData = JSON.parse(item.taskData);
+          const taskId = item.taskId
+          const cardId = item.functionalCardId
+          const logLevel = "INFO"
+          const message = "执行任务"
+          await uploadLog(taskId, cardId, logLevel, message)
 
           if (parsedTaskData && Array.isArray(parsedTaskData.accounts)) {
             for (const user of parsedTaskData.accounts) {
               const {account, password, auxiliaryEmail} = user;
               // 将每个异步任务都添加到promises数组中
-              promises.push(run(account, password, auxiliaryEmail));
+              promises.push(run(account, password, auxiliaryEmail, taskId, cardId));
             }
           }
         }
@@ -561,4 +653,13 @@ export const callApiAndRun = async () => {
   }
 }
 
-callApiAndRun().catch(err => logger.error('在调用API和执行run函数期间发生错误', err));
+
+// 获取命令行参数
+const [,, method] = process.argv;
+
+// 根据命令行参数的不同值调用不同的方法
+if (method === 'callApiAndRun') {
+  callApiAndRun().then().catch(err => logger.error('在调用API和执行run函数期间发生错误', err));
+} else {
+  console.log('Invalid method. Please specify "callApiAndRun" as the argument.');
+}
