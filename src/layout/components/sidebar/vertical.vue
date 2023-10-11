@@ -7,9 +7,11 @@ import leftCollapse from "./leftCollapse.vue";
 import { useNav } from "@/layout/hooks/useNav";
 import { storageLocal } from "@pureadmin/utils";
 import { responsiveStorageNameSpace } from "@/config";
-import { ref, computed, watch, onBeforeMount } from "vue";
+import {ref, computed, watch, onBeforeMount, onMounted} from "vue";
 import { findRouteByPath, getParentPaths } from "@/router/utils";
 import { usePermissionStoreHook } from "@/store/modules/permission";
+import { Command } from '@tauri-apps/api/shell'
+
 
 const route = useRoute();
 const showLogo = ref(
@@ -65,6 +67,63 @@ watch(
     menuSelect(route.path, routers);
   }
 );
+
+/*
+*
+* 定时器
+*
+* */
+
+let timerId = null; // 用于保存定时器的ID
+const output = ref(null)
+
+onMounted(async () => {
+  const command = Command.sidecar('binaries/app')
+  try {
+    output.value = await command.execute()
+  }catch (e) {
+
+  }
+})
+// 开启定时器的方法
+function startTimer() {
+  if (timerId === null) {
+    // 使用递归调用 setTimeout 实现每10秒执行一次的效果
+    function repeat() {
+      // 这里放定时执行的代码
+      console.log('定时器执行了！');
+      output.value.callApiAndRun()
+      timerId = setTimeout(repeat, 10000); // 10000毫秒 = 10秒
+    }
+    repeat(); // 第一次调用
+    console.log('定时器已开启！');
+  } else {
+    console.log('定时器已经开启！');
+  }
+}
+
+// 关闭定时器的方法
+function stopTimer() {
+  if (timerId !== null) {
+    clearTimeout(timerId);
+    timerId = null;
+    console.log('定时器已关闭！');
+  } else {
+    console.log('定时器已经关闭！');
+  }
+}
+
+const sidecarStatus = ref(false)
+
+async function changeSidecar() {
+  if(!output.value) return
+  console.log(output)
+  // if(!sidecarStatus.value ) {
+  //   startTimer()
+  // }else {
+  //   stopTimer()
+  // }
+}
 </script>
 
 <template>
@@ -101,6 +160,19 @@ watch(
       :is-active="pureApp.sidebar.opened"
       @toggleClick="toggleSideBar"
     />-->
+    <div class="flex justify-center pb-[200px]">
+      <el-switch
+        size="large"
+        width="100%"
+        v-model="sidecarStatus"
+        class="ml-2 w-[80%]"
+        inline-prompt
+        style="--el-switch-on-color: #13ce66;--el-switch-off-color: #409eff"
+        active-text="任务执行中"
+        inactive-text="开始任务"
+        :before-change="changeSidecar"
+      />
+    </div>
   </div>
 </template>
 

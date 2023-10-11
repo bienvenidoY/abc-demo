@@ -2,7 +2,7 @@
   "name": "tauri-pure-admin",
   "version": "0.0.1",
   "private": true,
-  "bin": "scripts/server.js",
+  "bin": "scripts/server/index.js",
   "scripts": {
     "tauri": "tauri",
     "dev": "tauri dev",
