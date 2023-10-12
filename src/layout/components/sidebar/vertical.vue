@@ -131,12 +131,20 @@ function stopTimer() {
 
 const sidecarStatus = ref(false)
 
+let timer2 = null
 async function switchChange(val) {
   if(val) {
     isRunTimeout.value = true
-    startTimer()
+    timer2 = setTimeout(() => {
+      startTimer()
+    }, 10* 1000)
+
   }else {
     isRunTimeout.value = false
+    if(timer2) {
+      clearTimeout(timer2)
+      timer2 = null
+    }
     stopTimer()
   }
 }
