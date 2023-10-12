@@ -1,8 +1,7 @@
+const axios = require('axios');
 const puppeteerExtra = require('puppeteer-extra');
 const stealth = require('puppeteer-extra-plugin-stealth');
 const fs = require('fs');
-const axios = require('axios');
-
 const {Random} = require('random-js');
 puppeteerExtra.use(stealth());
 

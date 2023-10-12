@@ -1,9 +1,5 @@
 lockfileVersion: '6.0'
 
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false
-
 dependencies:
   '@pureadmin/descriptions':
     specifier: ^1.1.1
@@ -27,7 +23,7 @@ dependencies:
     specifier: ^4.1.1
     version: 4.1.1
   axios:
-    specifier: ^1.4.0
+    specifier: ^1.5.1
     version: 1.5.1
   dayjs:
     specifier: ^1.11.7
@@ -2181,7 +2177,7 @@ packages:
     dev: false
 
   /asynckit@0.4.0:
-    resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
+    resolution: {integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=}
     dev: false
 
   /at-least-node@1.0.0:
@@ -3016,7 +3012,7 @@ packages:
     dev: false
 
   /delayed-stream@1.0.0:
-    resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
+    resolution: {integrity: sha1-3zrhmayt+31ECqrgsp4icrJOxhk=}
     engines: {node: '>=0.4.0'}
     dev: false
 
@@ -8008,3 +8004,7 @@ packages:
     dependencies:
       tslib: 2.3.0
     dev: false
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
