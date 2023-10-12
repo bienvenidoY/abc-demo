@@ -12,7 +12,6 @@ export const taskStore = defineStore({
   }),
   actions: {
     CHANGE_TASK(taskId) {
-      useStorage('currentTaskId', taskId, sessionStorage)
       this.currentTaskId = taskId
     },
     ADD_TASK(task) {
@@ -22,7 +21,6 @@ export const taskStore = defineStore({
       const isRepeat = this.taskList.findIndex(v => v.taskId === task.taskId) > -1;
       if(!isRepeat) {
         this.taskList.push(task)
-        useStorage('taskList', this.taskList, sessionStorage)
       }
     },
   }

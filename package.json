@@ -1,6 +1,6 @@
 {
   "name": "tauri-pure-admin",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": true,
   "bin": "scripts/server/server.js",
   "pkg": {
@@ -66,6 +66,8 @@
     "puppeteer": "^21.3.8",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer-extra-plugin-user-data-dir": "^2.4.1",
+    "puppeteer-extra-plugin-user-preferences": "^2.4.1",
     "qs": "^6.11.1",
     "random-js": "^2.1.0",
     "responsive-storage": "^2.2.0",

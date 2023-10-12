@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Logo from "./logo.vue";
+import {h, resolveComponent} from 'vue'
 import { useRoute } from "vue-router";
 import { emitter } from "@/utils/mitt";
 import SidebarItem from "./sidebarItem.vue";
@@ -12,6 +13,7 @@ import { findRouteByPath, getParentPaths } from "@/router/utils";
 import { usePermissionStoreHook } from "@/store/modules/permission";
 import { Command } from '@tauri-apps/api/shell'
 import {message} from "@/utils/message";
+import {ElNotification,  ElScrollbar,} from "element-plus";
 
 
 const route = useRoute();
@@ -74,7 +76,7 @@ watch(
 * 定时器
 *
 * */
-
+const isRunTimeout = ref(false)
 let timerId = null; // 用于保存定时器的ID
 const command = Command.sidecar('binaries/app', 'callApiAndRun')
 
@@ -83,24 +85,31 @@ function startTimer() {
   if (timerId === null) {
     // 使用递归调用 setTimeout 实现每10秒执行一次的效果
     function repeat() {
-      // 这里放定时执行的代码
-      console.log('定时器执行了！');
       command.execute().then(outputVal => {
-        console.log(outputVal, sidecarStatus.value )
         if(outputVal.code === 0) {
-          // output.value = outputVal
-          timerId = setTimeout(repeat, 10000); // 10000毫秒 = 10秒
+         if(outputVal.stderr) {
+           ElNotification({
+             title: '自动化脚本执行错误',
+             duration: 0,
+             dangerouslyUseHTMLString: true,
+             message: `<div style="height: 300px;overflow:scroll;">
+              ${outputVal.stderr}
+              </div>`
+           })
+         }
+         if(isRunTimeout.value) {
+           timerId = setTimeout(repeat, 10000); // 10000毫秒 = 10秒
+         }else {
+           stopTimer()
+         }
         }else {
-          console.log(outputVal.stderr)
-          message(outputVal.stderr, { type: 'error'})
+          message(outputVal.stderr, { type: 'error', duration: 5000})
           stopTimer()
           sidecarStatus.value = false
         }
       }).catch(e => {
         console.log(e)
       })
-
-
     }
     repeat(); // 第一次调用
     console.log('定时器已开启！');
@@ -124,8 +133,10 @@ const sidecarStatus = ref(false)
 
 async function switchChange(val) {
   if(val) {
+    isRunTimeout.value = true
     startTimer()
   }else {
+    isRunTimeout.value = false
     stopTimer()
   }
 }
