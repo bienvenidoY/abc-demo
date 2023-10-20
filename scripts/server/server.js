@@ -50,6 +50,8 @@ const VIEWPORT = {
 
 let CAPTCHA_TYPE = CAPTCHA.TYPE_DEFAULT;
 
+let token = ''
+
 const responseHandler = async (response, page) => {
   const url = response.url();
   try {
@@ -352,7 +354,7 @@ async function uploadLog(taskId, cardId, logLevel, message) {
   const endpoint = 'http://111.230.34.130:9080/v1/log';
   const headers = {
     'Content-Type': 'application/json',
-    'token': 'd51w0T6K2M8M4K0W6X2T',
+    'token': token,
   };
   const body = {
     taskId,
@@ -373,9 +375,11 @@ async function uploadLog(taskId, cardId, logLevel, message) {
 }
 
 let browser = null
-const callApiAndRun = async (token) => {
+const callApiAndRun = async (tokenParams) => {
+  // uploadLog 使用 token
+  token = tokenParams
   const headers = {
-    token,
+    token: token,
     'Content-Type': 'application/json',
     client: new Date().getTime()
   };
