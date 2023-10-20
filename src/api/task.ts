@@ -1,5 +1,4 @@
 import { http } from "@/utils/http";
-import { baseUrlApi } from "./utils";
 
 export type TablelistResult = {
   success: boolean;
@@ -16,5 +15,9 @@ export type TablelistResult = {
 
 /** 获取任务队列 */
 export const getTaskTablelistApi = (data?: object) => {
-  return http.request<TablelistResult>("get",'v1/tasks', { params: data });
+  return http.request<TablelistResult>("get",'v1/tasks', { params: data }, {
+    headers: {
+      client: '',
+    }
+  });
 };

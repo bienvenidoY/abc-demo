@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getToken } from "@/utils/auth";
 import Logo from "./logo.vue";
 import {h, resolveComponent} from 'vue'
 import { useRoute } from "vue-router";
@@ -78,7 +79,7 @@ watch(
 * */
 const isRunTimeout = ref(false)
 let timerId = null; // 用于保存定时器的ID
-const command = Command.sidecar('binaries/app', 'callApiAndRun')
+const command = Command.sidecar('binaries/app', ['callApiAndRun', `--token=${getToken()}`])
 
 // 开启定时器的方法
 function startTimer() {
@@ -86,6 +87,7 @@ function startTimer() {
     // 使用递归调用 setTimeout 实现每10秒执行一次的效果
     function repeat() {
       command.execute().then(outputVal => {
+        console.log(outputVal.stderr)
         if(outputVal.code === 0) {
          if(outputVal.stderr) {
            ElNotification({

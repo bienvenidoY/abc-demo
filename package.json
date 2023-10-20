@@ -2,10 +2,11 @@
   "name": "tauri-pure-admin",
   "version": "0.0.4",
   "private": true,
-  "bin": "scripts/server/server.js",
+  "bin": "scripts/server/index.js",
   "pkg": {
     "assets": [
-      "./node_modules/axios/dist/node/axios.cjs"
+      "./node_modules/axios/dist/node/axios.cjs",
+      "./scripts/server/*"
     ],
     "scripts": [
       "node_modules/puppeteer/lib/*.js",
@@ -36,7 +37,7 @@
     "lint": "pnpm lint:eslint && pnpm lint:prettier && pnpm lint:stylelint",
     "prepare": "husky install",
     "preinstall": "npx only-allow pnpm",
-    "package": "pkg package.json --output src-tauri/binaries/app && node scripts/move-binary.js"
+    "package": "pkg package.json --assets --output src-tauri/binaries/app && node scripts/move-binary.js"
   },
   "browserslist": [
     "> 1%",
